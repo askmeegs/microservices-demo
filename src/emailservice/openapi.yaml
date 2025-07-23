@@ -1,0 +1,84 @@
+openapi: 3.0.0
+info:
+  title: Email Service
+  version: 1.0.0
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /send_order_confirmation:
+    post:
+      summary: Sends an order confirmation email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendOrderConfirmationRequest'
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    SendOrderConfirmationRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        order:
+          $ref: '#/components/schemas/OrderResult'
+    OrderResult:
+      type: object
+      properties:
+        order_id:
+          type: string
+        shipping_tracking_id:
+          type: string
+        shipping_cost:
+          $ref: '#/components/schemas/Money'
+        shipping_address:
+          $ref: '#/components/schemas/Address'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    OrderItem:
+      type: object
+      properties:
+        item:
+          $ref: '#/components/schemas/CartItem'
+        cost:
+          $ref: '#/components/schemas/Money'
+    CartItem:
+      type: object
+      properties:
+        product_id:
+          type: string
+        quantity:
+          type: integer
+    Money:
+      type: object
+      properties:
+        currency_code:
+          type: string
+        units:
+          type: integer
+        nanos:
+          type: integer
+    Address:
+      type: object
+      properties:
+        street_address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        zip_code:
+          type: integer

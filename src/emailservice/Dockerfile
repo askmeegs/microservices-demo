@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,35 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM python:3.12.8-alpine@sha256:54bec49592c8455de8d5983d984efff76b6417a6af9b5dcc8d0237bf6ad3bd20 AS base
-
-FROM base AS builder
-
-RUN apk update \
-    && apk add --no-cache g++ linux-headers \
-    && rm -rf /var/cache/apk/*
-
-# get packages
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-FROM base
-# Enable unbuffered logging
-ENV PYTHONUNBUFFERED=1
-# Enable Profiler
-ENV ENABLE_PROFILER=1
-
-RUN apk update \
-    && apk add --no-cache libstdc++ \
-    && rm -rf /var/cache/apk/*
-
-WORKDIR /email_server
-
-# Grab packages from builder
-COPY --from=builder /usr/local/lib/python3.12/ /usr/local/lib/python3.12/
-
-# Add the application
+FROM node:22-alpine AS builder
+WORKDIR /app
 COPY . .
+RUN npm install
+RUN npm run build
+
+FROM node:22-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json .
+COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/openapi.yaml .
 
 EXPOSE 8080
-ENTRYPOINT [ "python", "email_server.py" ]
+CMD ["npm", "start"]

@@ -43,7 +43,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: emailservice
+        image: emailservice-ts
         ports:
         - containerPort: 8080
         env:
@@ -52,12 +52,12 @@ spec:
         - name: DISABLE_PROFILER
           value: "1"
         readinessProbe:
-          periodSeconds: 5
-          grpc:
+          httpGet:
+            path: /healthz
             port: 8080
         livenessProbe:
-          periodSeconds: 5
-          grpc:
+          httpGet:
+            path: /healthz
             port: 8080
         resources:
           requests:
@@ -78,7 +78,7 @@ spec:
   selector:
     app: emailservice
   ports:
-  - name: grpc
+  - name: http
     port: 5000
     targetPort: 8080
 ---
