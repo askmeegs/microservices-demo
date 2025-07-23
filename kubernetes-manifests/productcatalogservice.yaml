@@ -43,20 +43,20 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: productcatalogservice
+        image: us-central1-docker.pkg.dev/megan-agents-1/migration/productcatalog:latest
         ports:
-        - containerPort: 3550
+        - containerPort: 8080
         env:
         - name: PORT
-          value: "3550"
-        - name: DISABLE_PROFILER
-          value: "1"
+          value: "8080"
         readinessProbe:
-          grpc:
-            port: 3550
+          httpGet:
+            path: /products
+            port: 8080
         livenessProbe:
-          grpc:
-            port: 3550
+          httpGet:
+            path: /products
+            port: 8080
         resources:
           requests:
             cpu: 100m
@@ -76,9 +76,9 @@ spec:
   selector:
     app: productcatalogservice
   ports:
-  - name: grpc
-    port: 3550
-    targetPort: 3550
+  - name: http
+    port: 8080
+    targetPort: 8080
 ---
 apiVersion: v1
 kind: ServiceAccount
