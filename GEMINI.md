@@ -34,3 +34,12 @@ This is a critical area with specific conventions:
         *   Change the container port from the gRPC port to the new HTTP port (e.g., 8080).
         *   Update the `readinessProbe` and `livenessProbe` from `grpc` to `httpGet`, pointing to a valid health check or general endpoint.
         *   Update the `Service` definition to expose the new HTTP port.
+*   When migrating from a Java/Gradle project, the following files should be removed:
+    *   `build.gradle`
+    *   `gradlew`
+    *   `gradlew.bat`
+    *   `settings.gradle`
+    *   `.gradle/`
+    *   `gradle/`
+    *   The Java source directory (`src/main/`)
+*   A `dev` script using `nodemon` is preferred for running the development server.

@@ -1,0 +1,59 @@
+openapi: 3.0.0
+info:
+  title: Ad Service
+  description: A service to manage and retrieve advertisements.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+paths:
+  /ads:
+    get:
+      summary: Get Ads
+      description: Retrieves a list of ads based on provided context keys. If no keys are provided, random ads are returned.
+      parameters:
+        - name: context_keys
+          in: query
+          description: A list of context keys to filter ads by.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: A successful response with a list of ads.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ads:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ad'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "failed to retrieve ads"
+components:
+  schemas:
+    Ad:
+      type: object
+      properties:
+        redirect_url:
+          type: string
+          description: The URL where the ad redirects to.
+          example: "/product/2ZYFJ3GM2N"
+        text:
+          type: string
+          description: The display text for the ad.
+          example: "Hairdryer for sale. 50% off."

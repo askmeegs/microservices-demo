@@ -1,43 +1,52 @@
-## Migration Plan: emailservice (Python/gRPC to TypeScript/HTTP)
+# Migration Plan: AdService from Java/gRPC to TypeScript/HTTP
 
-This document outlines the plan to migrate the `emailservice` from a Python-based gRPC service to a TypeScript-based HTTP service.
+This document outlines the plan to migrate the `adservice` from a Java/gRPC implementation to a TypeScript/HTTP (Express.js) implementation.
 
-### Milestone 1: Project Setup and Initial HTTP Server
+## 1. Project Setup
 
-1.  **Create a new directory structure:** Create a new `ts` directory inside `src/emailservice` to house the new TypeScript code.
-2.  **Initialize a Node.js project:** Run `npm init -y` in the new directory.
-3.  **Install dependencies:** Install `typescript`, `express`, `@types/express`, `@types/node`, `jest`, `ts-jest`, `@types/jest`.
-4.  **Create `tsconfig.json`:** Configure the TypeScript compiler options.
-5.  **Create a basic Express server:** Create a `src/index.ts` file with a minimal Express server.
-6.  **Create a simple test:** Create a `src/index.test.ts` to ensure the test setup is working.
-7.  **Update `.gitignore`:** Add `node_modules` and `dist` to the `.gitignore` file in the `src/emailservice` directory.
+- **Create `package.json`:** Initialize a new Node.js project with a `package.json` file. This file will define all dependencies with pinned versions, including:
+    - `express`: 4.19.2
+    - `typescript`: 5.8.3
+    - `ts-node`: 10.9.2
+    - `jest`: 29.7.0
+    - `ts-jest`: 29.1.2
+    - `@types/express`: 4.17.21
+    - `@types/jest`: 29.5.12
+    - `@types/node`: 20.12.12
+    - `axios`: 1.7.2
+- **Create `tsconfig.json`:** Configure TypeScript with a `tsconfig.json` file. This will define the compiler options, such as the target version of JavaScript, module system, and output directory.
+- **Create `.dockerignore`:** Create a `.dockerignore` file to exclude `node_modules` and other unnecessary files from the Docker build context.
 
-### Milestone 2: OpenAPI Spec and API Layer
+## 2. API Definition
 
-1.  **Create OpenAPI Spec:** Convert the gRPC `EmailService` definition from `demo.proto` to an `openapi.yaml` file. This will define the HTTP API.
-2.  **API Request Validation:** Implement middleware in Express to validate incoming requests against the `openapi.yaml` spec.
-3.  **Implement API routes:** Create the `/send_order_confirmation` endpoint in the Express server.
-4.  **Write API tests:** Write integration tests to verify the new endpoint, including validation and basic success/error responses.
+- **Create `openapi.yaml`:** Define the new HTTP API using the OpenAPI 3.0 specification. This will be based on the existing gRPC service definition in `protos/demo.proto`. The API will have a single endpoint:
+    - `GET /ads`: This endpoint will accept an optional `context_keys` query parameter and return a list of ads.
 
-### Milestone 3: Business Logic and Templating
+## 3. Testing
 
-1.  **Implement the email sending logic:**
-    *   Create a `dummy` email provider that logs the email content, mimicking the original Python service's dummy mode.
-    *   The logic will take the request body, render the HTML template, and use the dummy provider to "send" the email.
-2.  **Port the Jinja2 template:** Convert the `confirmation.html` template to a compatible format if necessary (or use a Node.js-based Jinja2-like library).
-3.  **Write unit tests:** Write unit tests for the email sending logic and templating.
+- **Write API Server Tests:** Using Jest and `ts-jest`, create a test suite for the API server. The tests will cover the following scenarios:
+    - Requesting ads with `context_keys` and verifying that the correct ads are returned.
+    - Requesting ads without `context_keys` and verifying that a random selection of ads is returned.
+    - Requesting ads with an unknown `context_key` and verifying that a random selection of ads is returned.
 
-### Milestone 4: Docker and Kubernetes
+## 4. Implementation
 
-1.  **Update Dockerfile:** Create a new `Dockerfile` in the `src/emailservice` directory that builds the TypeScript application.
-2.  **Update Kubernetes manifests:**
-    *   Update the `emailservice.yaml` in `kubernetes-manifests` to use the new Docker image.
-    *   Change the port from gRPC to HTTP (8080).
-    *   Update the readiness and liveness probes to use HTTP endpoints.
-    *   Update any other relevant Kubernetes configurations.
+- **Implement the Ad Service Logic:** Create a new `src/AdService.ts` file to contain the core logic of the ad service. This will include the in-memory ad data and the functions for selecting ads.
+- **Implement the Express Server:** Create a new `src/index.ts` file to implement the Express.js server. This server will handle requests to the `/ads` endpoint and use the `AdService` to generate the ad response.
 
-### Milestone 5: Final Touches and Cleanup
+## 5. Containerization and Deployment
 
-1.  **Add tracing and profiling:** Implement OpenTelemetry for tracing HTTP requests.
-2.  **Remove old Python files:** Delete the Python-related files from the `src/emailservice` directory.
-3.  **Review and refactor:** Clean up the code and ensure it follows project conventions.
+- **Update `Dockerfile`:** Modify the existing `Dockerfile` to build the new TypeScript application. This will involve:
+    - Using a Node.js 22 base image.
+    - Installing dependencies using `npm install`.
+    - Compiling the TypeScript code using `tsc`.
+    - Setting the entry point to `node dist/index.js`.
+- **Update `kubernetes-manifests/adservice.yaml`:** Update the Kubernetes manifest to reflect the changes in the service:
+    - Change the container image to the new image name.
+    - Update the container port from 9555 (gRPC) to 8080 (HTTP).
+    - Update the readiness and liveness probes to use an HTTP `GET` request to the `/ads` endpoint.
+    - Update the `Service` definition to expose port 8080.
+
+## 6. Cleanup
+
+- **Remove old files:** Remove the old Java source files, `build.gradle`, `gradlew`, and other files related to the Java implementation.
