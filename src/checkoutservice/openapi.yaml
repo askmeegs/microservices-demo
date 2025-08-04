@@ -1,0 +1,127 @@
+openapi: 3.0.0
+info:
+  title: Checkout Service
+  version: 1.0.0
+  description: A service to process customer checkouts.
+servers:
+  - url: http://localhost:8080
+paths:
+  /placeorder:
+    post:
+      summary: Places an order for the items in the user's cart.
+      operationId: placeOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceOrderRequest'
+      responses:
+        '200':
+          description: Order placed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceOrderResponse'
+        '400':
+          description: Bad request.
+        '500':
+          description: Internal server error.
+components:
+  schemas:
+    Money:
+      type: object
+      properties:
+        currency_code:
+          type: string
+          example: "USD"
+        units:
+          type: integer
+          format: int64
+          example: 100
+        nanos:
+          type: integer
+          format: int32
+          example: 0
+    Address:
+      type: object
+      properties:
+        street_address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        zip_code:
+          type: integer
+          format: int32
+    CreditCardInfo:
+      type: object
+      properties:
+        credit_card_number:
+          type: string
+        credit_card_cvv:
+          type: integer
+          format: int32
+        credit_card_expiration_year:
+          type: integer
+          format: int32
+        credit_card_expiration_month:
+          type: integer
+          format: int32
+    CartItem:
+      type: object
+      properties:
+        product_id:
+          type: string
+        quantity:
+          type: integer
+          format: int32
+    OrderItem:
+      type: object
+      properties:
+        item:
+          $ref: '#/components/schemas/CartItem'
+        cost:
+          $ref: '#/components/schemas/Money'
+    OrderResult:
+      type: object
+      properties:
+        order_id:
+          type: string
+        shipping_tracking_id:
+          type: string
+        shipping_cost:
+          $ref: '#/components/schemas/Money'
+        shipping_address:
+          $ref: '#/components/schemas/Address'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    PlaceOrderRequest:
+      type: object
+      required:
+        - user_id
+        - user_currency
+        - address
+        - email
+        - credit_card
+      properties:
+        user_id:
+          type: string
+        user_currency:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        email:
+          type: string
+        credit_card:
+          $ref: '#/components/schemas/CreditCardInfo'
+    PlaceOrderResponse:
+      type: object
+      properties:
+        order:
+          $ref: '#/components/schemas/OrderResult'
