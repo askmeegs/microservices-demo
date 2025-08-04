@@ -16,8 +16,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: checkoutservice
-  labels:
-    app: checkoutservice
 spec:
   selector:
     matchLabels:
@@ -27,33 +25,23 @@ spec:
       labels:
         app: checkoutservice
     spec:
-      serviceAccountName: checkoutservice
-      securityContext:
-        fsGroup: 1000
-        runAsGroup: 1000
-        runAsNonRoot: true
-        runAsUser: 1000
+      serviceAccountName: default
       containers:
         - name: server
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            privileged: false
-            readOnlyRootFilesystem: true
-          image: checkoutservice
+          image: checkoutservice-ts
           ports:
-          - containerPort: 5050
+          - containerPort: 8080
           readinessProbe:
-            grpc:
-              port: 5050
+            httpGet:
+              path: /
+              port: 8080
           livenessProbe:
-            grpc:
-              port: 5050
+            httpGet:
+              path: /
+              port: 8080
           env:
           - name: PORT
-            value: "5050"
+            value: "8080"
           - name: PRODUCT_CATALOG_SERVICE_ADDR
             value: "productcatalogservice:3550"
           - name: SHIPPING_SERVICE_ADDR
@@ -66,6 +54,8 @@ spec:
             value: "currencyservice:7000"
           - name: CART_SERVICE_ADDR
             value: "cartservice:7070"
+          # - name: JAEGER_SERVICE_ADDR
+          #   value: "jaeger-collector:14268"
           resources:
             requests:
               cpu: 100m
@@ -78,18 +68,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: checkoutservice
-  labels:
-    app: checkoutservice
 spec:
   type: ClusterIP
   selector:
     app: checkoutservice
   ports:
-  - name: grpc
+  - name: http
     port: 5050
-    targetPort: 5050
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: checkoutservice
+    targetPort: 8080

@@ -1,0 +1,35 @@
+{
+  "name": "checkoutservice-ts",
+  "version": "1.0.0",
+  "description": "TypeScript checkout service",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "axios": "1.7.2",
+    "express": "4.19.2",
+    "uuid": "10.0.0",
+    "yamljs": "0.3.0",
+    "swagger-ui-express": "4.6.3"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.21",
+    "@types/jest": "29.5.12",
+    "@types/node": "22.0.0",
+    "@types/supertest": "6.0.2",
+    "@types/swagger-ui-express": "4.1.6",
+    "@types/uuid": "10.0.0",
+    "@types/yamljs": "0.2.34",
+    "jest": "29.7.0",
+    "supertest": "7.0.0",
+    "ts-jest": "29.2.3",
+    "typescript": "5.8.3",
+    "openapi-types": "12.1.3"
+  }
+}
