@@ -16,6 +16,11 @@
 
 const pino = require('pino');
 
+/**
+ * Creates a Pino logger with a custom format.
+ * The log level is mapped to a `severity` field to be compatible with
+ * Google Cloud Logging.
+ */
 module.exports = pino({
   name: 'paymentservice-server',
   messageKey: 'message',

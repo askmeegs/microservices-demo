@@ -20,7 +20,14 @@ const charge = require('./charge');
 
 const logger = require('./logger')
 
+/**
+ * A gRPC server that implements the PaymentService and HealthCheck services.
+ */
 class HipsterShopServer {
+  /**
+   * @param {string} protoRoot - The path to the root directory of the protobuf definitions.
+   * @param {number} [port=HipsterShopServer.PORT] - The port to listen on.
+   */
   constructor(protoRoot, port = HipsterShopServer.PORT) {
     this.port = port;
 
@@ -35,8 +42,9 @@ class HipsterShopServer {
 
   /**
    * Handler for PaymentService.Charge.
-   * @param {*} call  { ChargeRequest }
-   * @param {*} callback  fn(err, ChargeResponse)
+   * @param {object} call - The gRPC call object.
+   * @param {object} call.request - The charge request.
+   * @param {function} callback - The callback function.
    */
   static ChargeServiceHandler(call, callback) {
     try {
@@ -49,13 +57,20 @@ class HipsterShopServer {
     }
   }
 
+  /**
+   * Handler for Health.Check.
+   * @param {object} call - The gRPC call object.
+   * @param {function} callback - The callback function.
+   */
   static CheckHandler(call, callback) {
     callback(null, { status: 'SERVING' });
   }
 
-
+  /**
+   * Starts the gRPC server.
+   */
   listen() {
-    const server = this.server 
+    const server = this.server
     const port = this.port
     server.bindAsync(
       `[::]:${port}`,
@@ -67,6 +82,11 @@ class HipsterShopServer {
     );
   }
 
+  /**
+   * Loads a protobuf file.
+   * @param {string} path - The path to the protobuf file.
+   * @returns {object} - The loaded package definition.
+   */
   loadProto(path) {
     const packageDefinition = protoLoader.loadSync(
       path,
@@ -81,7 +101,10 @@ class HipsterShopServer {
     return grpc.loadPackageDefinition(packageDefinition);
   }
 
-  loadAllProtos(protoRoot) {
+  /**
+   * Loads all protobuf services.
+   */
+  loadAllProtos() {
     const hipsterShopPackage = this.packages.hipsterShop.hipstershop;
     const healthPackage = this.packages.health.grpc.health.v1;
 

@@ -18,6 +18,7 @@
 
 const logger = require('./logger')
 
+// Initialize Google Cloud Profiler
 if(process.env.DISABLE_PROFILER) {
   logger.info("Profiler disabled.")
 }
@@ -31,7 +32,7 @@ else {
   });
 }
 
-
+// Initialize OpenTelemetry Tracing
 if(process.env.ENABLE_TRACING == "1") {
   logger.info("Tracing enabled.")
   const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
@@ -68,6 +69,7 @@ const HipsterShopServer = require('./server');
 const PORT = process.env['PORT'];
 const PROTO_PATH = path.join(__dirname, '/proto/');
 
+// Create and start the gRPC server
 const server = new HipsterShopServer(PROTO_PATH, PORT);
 
 server.listen();

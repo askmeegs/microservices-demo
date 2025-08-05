@@ -26,7 +26,9 @@ const logger = pino({
   }
 });
 
-
+/**
+ * Custom error classes for credit card processing.
+ */
 class CreditCardError extends Error {
   constructor (message) {
     super(message);
@@ -34,18 +36,27 @@ class CreditCardError extends Error {
   }
 }
 
+/**
+ * Error for invalid credit card information.
+ */
 class InvalidCreditCard extends CreditCardError {
   constructor (cardType) {
     super(`Credit card info is invalid`);
   }
 }
 
+/**
+ * Error for unaccepted credit card types.
+ */
 class UnacceptedCreditCard extends CreditCardError {
   constructor (cardType) {
     super(`Sorry, we cannot process ${cardType} credit cards. Only VISA or MasterCard is accepted.`);
   }
 }
 
+/**
+ * Error for expired credit cards.
+ */
 class ExpiredCreditCard extends CreditCardError {
   constructor (number, month, year) {
     super(`Your credit card (ending ${number.substr(-4)}) expired on ${month}/${year}`);
@@ -55,8 +66,17 @@ class ExpiredCreditCard extends CreditCardError {
 /**
  * Verifies the credit card number and (pretend) charges the card.
  *
- * @param {*} request
- * @return transaction_id - a random uuid.
+ * @param {object} request - The charge request object.
+ * @param {object} request.amount - The amount to charge.
+ * @param {object} request.credit_card - The credit card information.
+ * @param {string} request.credit_card.credit_card_number - The credit card number.
+ * @param {number} request.credit_card.credit_card_expiration_year - The expiration year.
+ * @param {number} request.credit_card.credit_card_expiration_month - The expiration month.
+ * @returns {object} - The transaction result.
+ * @returns {string} transaction_id - a random uuid.
+ * @throws {InvalidCreditCard} - If the credit card number is invalid.
+ * @throws {UnacceptedCreditCard} - If the credit card type is not VISA or MasterCard.
+ * @throws {ExpiredCreditCard} - If the credit card is expired.
  */
 module.exports = function charge (request) {
   const { amount, credit_card: creditCard } = request;
@@ -82,5 +102,6 @@ module.exports = function charge (request) {
   logger.info(`Transaction processed: ${cardType} ending ${cardNumber.substr(-4)} \
     Amount: ${amount.currency_code}${amount.units}.${amount.nanos}`);
 
+  // Return a random transaction ID.
   return { transaction_id: uuidv4() };
 };
