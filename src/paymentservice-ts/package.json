@@ -1,0 +1,36 @@
+{
+  "name": "paymentservice-ts",
+  "version": "1.0.0",
+  "description": "TypeScript-based Payment Microservice",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node .",
+    "dev": "ts-node src/index.ts",
+    "test": "jest"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "author": "Gemini",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "axios": "1.7.2",
+    "express": "4.19.2",
+    "pino": "9.3.1",
+    "simple-card-validator": "1.1.0",
+    "uuid": "10.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.21",
+    "@types/jest": "29.5.12",
+    "@types/node": "22.0.0",
+    "@types/supertest": "6.0.2",
+    "@types/uuid": "10.0.0",
+    "jest": "29.7.0",
+    "supertest": "7.0.0",
+    "ts-jest": "29.2.3",
+    "ts-node": "10.9.2",
+    "typescript": "5.5.3"
+  }
+}

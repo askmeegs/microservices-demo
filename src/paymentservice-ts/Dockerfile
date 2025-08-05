@@ -1,4 +1,4 @@
-# Copyright 2022 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,17 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-- adservice.yaml
-- cartservice.yaml
-- checkoutservice.yaml
-- currencyservice.yaml
-- emailservice.yaml
-- frontend.yaml
-- loadgenerator.yaml
-- paymentservice-ts.yaml
-- productcatalogservice.yaml
-- recommendationservice.yaml
-- shippingservice.yaml
+FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+# ---
+
+FROM node:22-alpine
+
+RUN apk add --no-cache tini
+
+WORKDIR /usr/src/app
+
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/package.json .
+
+EXPOSE 8080
+
+ENTRYPOINT [ "/sbin/tini", "--" ]
+
+CMD [ "node", "dist/index.js" ]

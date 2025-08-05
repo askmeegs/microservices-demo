@@ -1,0 +1,115 @@
+openapi: 3.0.0
+info:
+  title: Payment Service
+  description: A simple service to process payments.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+paths:
+  /charge:
+    post:
+      summary: Process a credit card payment
+      description: Charges the provided credit card for the given amount.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeRequest'
+      responses:
+        '200':
+          description: Payment successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChargeResponse'
+        '400':
+          description: Invalid request (e.g., invalid card details)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /healthz:
+    get:
+      summary: Health check
+      description: Returns the health status of the service.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "SERVING"
+
+components:
+  schemas:
+    Money:
+      type: object
+      properties:
+        currency_code:
+          type: string
+          example: "USD"
+        units:
+          type: integer
+          format: int64
+          example: 100
+        nanos:
+          type: integer
+          format: int32
+          example: 0
+
+    CreditCardInfo:
+      type: object
+      properties:
+        credit_card_number:
+          type: string
+          example: "4000 0000 0000 0000"
+        credit_card_cvv:
+          type: integer
+          format: int32
+          example: 123
+        credit_card_expiration_year:
+          type: integer
+          format: int32
+          example: 2030
+        credit_card_expiration_month:
+          type: integer
+          format: int32
+          example: 12
+
+    ChargeRequest:
+      type: object
+      required:
+        - amount
+        - credit_card
+      properties:
+        amount:
+          $ref: '#/components/schemas/Money'
+        credit_card:
+          $ref: '#/components/schemas/CreditCardInfo'
+
+    ChargeResponse:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid credit card number."
