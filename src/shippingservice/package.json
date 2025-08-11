@@ -1,0 +1,30 @@
+{
+  "name": "shippingservice",
+  "version": "1.0.0",
+  "description": "Shipping service for the online boutique",
+  "main": "dist/server.js",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "1.7.2",
+    "express": "4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.21",
+    "@types/jest": "29.5.12",
+    "@types/node": "20.14.11",
+    "@types/supertest": "^6.0.3",
+    "jest": "29.7.0",
+    "supertest": "^7.1.4",
+    "ts-jest": "29.2.0",
+    "typescript": "5.5.3"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

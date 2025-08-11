@@ -1,0 +1,96 @@
+openapi: 3.0.0
+info:
+  title: Shipping Service
+  version: 1.0.0
+paths:
+  /quote:
+    post:
+      summary: Get a shipping quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetQuoteRequest'
+      responses:
+        '200':
+          description: A shipping quote
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetQuoteResponse'
+  /shiporder:
+    post:
+      summary: Ship an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipOrderRequest'
+      responses:
+        '200':
+          description: A tracking ID for the shipment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipOrderResponse'
+components:
+  schemas:
+    Money:
+      type: object
+      properties:
+        currency_code:
+          type: string
+        units:
+          type: integer
+        nanos:
+          type: integer
+    Address:
+      type: object
+      properties:
+        street_address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        zip_code:
+          type: integer
+    CartItem:
+      type: object
+      properties:
+        product_id:
+          type: string
+        quantity:
+          type: integer
+    GetQuoteRequest:
+      type: object
+      properties:
+        address:
+          $ref: '#/components/schemas/Address'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+    GetQuoteResponse:
+      type: object
+      properties:
+        cost_usd:
+          $ref: '#/components/schemas/Money'
+    ShipOrderRequest:
+      type: object
+      properties:
+        address:
+          $ref: '#/components/schemas/Address'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+    ShipOrderResponse:
+      type: object
+      properties:
+        tracking_id:
+          type: string
