@@ -1,79 +1,61 @@
-# Migration Plan: Payment Service (JavaScript/gRPC to TypeScript/HTTP)
+# Migration Plan: Go/gRPC to TypeScript/HTTP
 
-This document outlines the plan to migrate the `paymentservice` from a JavaScript-based gRPC service to a TypeScript-based HTTP/Express service.
+This document outlines the plan to migrate the `checkoutservice` from a Go/gRPC implementation to a TypeScript/HTTP implementation.
 
-## Milestone 1: Project Setup & API Definition
+## 1. Project Setup
 
-1.  **Create New Directory:** Create a new directory `src/paymentservice-ts` to house the new TypeScript service, keeping the original service intact during development.
-2.  **Initialize `package.json`:**
-    *   Create a `package.json` file.
-    *   Set the node engine to `22.x`.
-    *   Add and pin the following dependencies:
-        *   `express`, `axios`, `pino`, `uuid`, `simple-card-validator`
-        *   `typescript`, `ts-node`, `jest`, `ts-jest`, `supertest`
-        *   `@types/node`, `@types/express`, `@types/jest`, etc.
-3.  **Create `tsconfig.json`:** Configure TypeScript with modern settings (`target: "ES2022"`, `module: "NodeNext"`, `strict: true`, etc.) and an output directory (e.g., `dist`).
-4.  **Define API with OpenAPI:**
-    *   Create an `openapi.yaml` file inside `src/paymentservice-ts`.
-    *   Define a `/charge` endpoint (POST) based on the gRPC `Charge` method.
-    *   Define a `/healthz` endpoint (GET) for health checks.
-5.  **Create Directory Structure:** Set up the basic source and test directories:
-    *   `src/paymentservice-ts/src/`
-    *   `src/paymentservice-ts/tests/`
+*   **DONE** Create a new `checkoutservice-ts` directory in `src`.
+*   **DONE** Initialize a new Node.js project with `npm init`.
+*   **DONE** Install dependencies:
+    *   `typescript`
+    *   `ts-node`
+    *   `express`
+    *   `axios`
+    *   `jest`
+    *   `ts-jest`
+    *   `@types/express`
+    *   `@types/jest`
+    *   `@types/node`
+    *   `openapi-types`
+    *   `uuid`
+*   **DONE** Configure `tsconfig.json` for the project.
+*   **DONE** Configure `jest.config.js` for the project.
 
-## Milestone 2: TDD - API Server & Tests
+## 2. OpenAPI Specification
 
-1.  **Write API Server Tests (`tests/api.test.ts`):**
-    *   Write a test to ensure the Express server starts.
-    *   Write a test for the `/healthz` endpoint to ensure it returns a `200 OK` status.
-    *   Write tests for the `/charge` endpoint:
-        *   A test for a successful request (valid payload) that should return `200 OK`.
-        *   A test for a request with a missing/invalid payload that should return `400 Bad Request`.
-2.  **Implement Basic API Server (`src/index.ts`):**
-    *   Create a basic Express server.
-    *   Implement the `/healthz` endpoint.
-    *   Implement a placeholder `/charge` endpoint that returns the expected success/error codes to make the tests pass.
+*   **DONE** Create an `openapi.yaml` file for the `checkoutservice`.
+*   **DONE** Define the `/charge` endpoint and its request and response schemas.
+*   **DONE** Define the `/healthz` endpoint.
 
-## Milestone 3: TDD - Business Logic & Tests
+## 3. Test-Driven Development
 
-1.  **Write Business Logic Tests (`tests/charge.test.ts`):**
-    *   Replicate the business logic tests based on the original `charge.js` functionality.
-    *   Test for a successful payment charge.
-    *   Test for an invalid credit card number, throwing a specific error.
-    *   Test for an unaccepted credit card type (e.g., not VISA or MasterCard), throwing a specific error.
-    *   Test for an expired credit card, throwing a specific error.
-2.  **Implement Business Logic (`src/charge.ts`):**
-    *   Migrate the payment processing logic from `src/paymentservice/charge.js` to TypeScript.
-    *   Define TypeScript types/interfaces for the `ChargeRequest` and `ChargeResponse`.
-    *   Implement the validation and charge logic to make the tests pass.
+*   **DONE** Create a `src/tests` directory.
+*   **DONE** Write initial tests for the API server in `src/tests/api.test.ts`.
+    *   Test for a successful response from the `/healthz` endpoint.
+    *   Test for a successful response from the `/charge` endpoint with valid data.
+    *   Test for a 400 error from the `/charge` endpoint with invalid data.
 
-## Milestone 4: Final Implementation & Integration
+## 4. Implementation
 
-1.  **Integrate Logic with API:**
-    *   In `src/index.ts`, replace the placeholder `/charge` handler with the actual business logic from `src/charge.ts`.
-    *   Add proper error handling to catch errors from the business logic and return appropriate HTTP status codes (e.g., 400 for card errors).
-2.  **Add Logging:**
-    *   Integrate `pino` for structured logging, mimicking the format of the original service.
-3.  **Manual Verification:**
-    *   Run the server locally.
-    *   Use `curl` to send test requests to the `/charge` and `/healthz` endpoints to confirm functionality.
+*   **DONE** Create a `src/index.ts` file for the main application logic.
+*   **DONE** Implement the Express server.
+*   **DONE** Implement the `/healthz` endpoint.
+*   **DONE** Implement the `/charge` endpoint, including:
+    *   Calling the `productcatalogservice` to get product details.
+    *   Calling the `cartservice` to get the user's cart.
+    *   Calling the `currencyservice` to convert currencies.
+    *   Calling the `shippingservice` to get a shipping quote.
+    *   Calling the `paymentservice` to charge the credit card.
+    *   Calling the `emailservice` to send an order confirmation.
 
-## Milestone 5: Containerization & Deployment Artifacts
+## 5. Dockerization and Kubernetes
 
-1.  **Create `Dockerfile`:**
-    *   Create a new, multi-stage `Dockerfile` in `src/paymentservice-ts`.
-    *   The `builder` stage will install dependencies and compile the TypeScript code.
-    *   The final stage will be a lean image (e.g., `node:22-alpine`) containing only the compiled JavaScript and production `node_modules`.
-2.  **Update Kubernetes Manifests:**
-    *   Copy `kubernetes-manifests/paymentservice.yaml` to `kubernetes-manifests/paymentservice-ts.yaml`.
-    *   In the new file, update the following:
-        *   `metadata.name` and `spec.selector.matchLabels.app` to `paymentservice-ts`.
-        *   `spec.template.spec.containers[0].image` to the new image name (e.g., `paymentservice-ts`).
-        *   Change `containerPort` to the new HTTP port (e.g., 8080).
-        *   Replace `readinessProbe` and `livenessProbe` from `grpc` to `httpGet`, pointing to the `/healthz` path on the new port.
-    *   In the `Service` definition, update the port to expose the new HTTP port.
-3.  **Update Kustomize:**
-    *   Add `paymentservice-ts.yaml` to the appropriate `kustomization.yaml` file(s), replacing the old `paymentservice.yaml`.
-4.  **Update Skaffold:**
-    *   In `skaffold.yaml`, add a new build artifact for `paymentservice-ts` pointing to the new `Dockerfile`.
-    *   Update the `manifests` section to deploy the new `paymentservice-ts.yaml`.
+*   **DONE** Create a new `Dockerfile` for the TypeScript service.
+*   **DONE** Update the `kubernetes-manifests/checkoutservice.yaml` to use the new Docker image and configure the HTTP server.
+*   **DONE** Update the `kustomize/base/checkoutservice.yaml` to use the new Docker image and configure the HTTP server.
+
+## 6. Refinement and Cleanup
+
+*   **DONE** Remove the old Go `checkoutservice` directory.
+*   **DONE** Update any relevant documentation.
+*   **DONE** Manually test the new service in the context of the entire application.

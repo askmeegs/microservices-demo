@@ -1,0 +1,113 @@
+openapi: 3.0.0
+info:
+  title: Checkout Service
+  version: 1.0.0
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /charge:
+    post:
+      summary: Charge for an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeRequest'
+      responses:
+        '200':
+          description: The order result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChargeResponse'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    ChargeRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+        user_currency:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        email:
+          type: string
+        credit_card:
+          $ref: '#/components/schemas/CreditCardInfo'
+    ChargeResponse:
+      type: object
+      properties:
+        order:
+          $ref: '#/components/schemas/OrderResult'
+    Address:
+      type: object
+      properties:
+        street_address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        zip_code:
+          type: integer
+    CreditCardInfo:
+      type: object
+      properties:
+        credit_card_number:
+          type: string
+        credit_card_cvv:
+          type: integer
+        credit_card_expiration_year:
+          type: integer
+        credit_card_expiration_month:
+          type: integer
+    OrderResult:
+      type: object
+      properties:
+        order_id:
+          type: string
+        shipping_tracking_id:
+          type: string
+        shipping_cost:
+          $ref: '#/components/schemas/Money'
+        shipping_address:
+          $ref: '#/components/schemas/Address'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    Money:
+      type: object
+      properties:
+        currency_code:
+          type: string
+        units:
+          type: integer
+        nanos:
+          type: integer
+    OrderItem:
+      type: object
+      properties:
+        item:
+          $ref: '#/components/schemas/CartItem'
+        cost:
+          $ref: '#/components/schemas/Money'
+    CartItem:
+      type: object
+      properties:
+        product_id:
+          type: string
+        quantity:
+          type: integer
