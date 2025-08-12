@@ -27,6 +27,7 @@ const (
 	avoidNoopCurrencyConversionRPC = false
 )
 
+// getCurrencies calls the currency service to get the list of supported currencies.
 func (fe *frontendServer) getCurrencies(ctx context.Context) ([]string, error) {
 	currs, err := pb.NewCurrencyServiceClient(fe.currencySvcConn).
 		GetSupportedCurrencies(ctx, &pb.Empty{})
@@ -42,28 +43,33 @@ func (fe *frontendServer) getCurrencies(ctx context.Context) ([]string, error) {
 	return out, nil
 }
 
+// getProducts calls the product catalog service to get the list of products.
 func (fe *frontendServer) getProducts(ctx context.Context) ([]*pb.Product, error) {
 	resp, err := pb.NewProductCatalogServiceClient(fe.productCatalogSvcConn).
 		ListProducts(ctx, &pb.Empty{})
 	return resp.GetProducts(), err
 }
 
+// getProduct calls the product catalog service to get a single product.
 func (fe *frontendServer) getProduct(ctx context.Context, id string) (*pb.Product, error) {
 	resp, err := pb.NewProductCatalogServiceClient(fe.productCatalogSvcConn).
 		GetProduct(ctx, &pb.GetProductRequest{Id: id})
 	return resp, err
 }
 
+// getCart calls the cart service to get the user's cart.
 func (fe *frontendServer) getCart(ctx context.Context, userID string) ([]*pb.CartItem, error) {
 	resp, err := pb.NewCartServiceClient(fe.cartSvcConn).GetCart(ctx, &pb.GetCartRequest{UserId: userID})
 	return resp.GetItems(), err
 }
 
+// emptyCart calls the cart service to empty the user's cart.
 func (fe *frontendServer) emptyCart(ctx context.Context, userID string) error {
 	_, err := pb.NewCartServiceClient(fe.cartSvcConn).EmptyCart(ctx, &pb.EmptyCartRequest{UserId: userID})
 	return err
 }
 
+// insertCart calls the cart service to add an item to the user's cart.
 func (fe *frontendServer) insertCart(ctx context.Context, userID, productID string, quantity int32) error {
 	_, err := pb.NewCartServiceClient(fe.cartSvcConn).AddItem(ctx, &pb.AddItemRequest{
 		UserId: userID,
@@ -74,6 +80,7 @@ func (fe *frontendServer) insertCart(ctx context.Context, userID, productID stri
 	return err
 }
 
+// convertCurrency calls the currency service to convert a monetary amount to a different currency.
 func (fe *frontendServer) convertCurrency(ctx context.Context, money *pb.Money, currency string) (*pb.Money, error) {
 	if avoidNoopCurrencyConversionRPC && money.GetCurrencyCode() == currency {
 		return money, nil
@@ -84,6 +91,7 @@ func (fe *frontendServer) convertCurrency(ctx context.Context, money *pb.Money, 
 			ToCode: currency})
 }
 
+// getShippingQuote calls the shipping service to get a shipping quote.
 func (fe *frontendServer) getShippingQuote(ctx context.Context, items []*pb.CartItem, currency string) (*pb.Money, error) {
 	quote, err := pb.NewShippingServiceClient(fe.shippingSvcConn).GetQuote(ctx,
 		&pb.GetQuoteRequest{
@@ -96,6 +104,7 @@ func (fe *frontendServer) getShippingQuote(ctx context.Context, items []*pb.Cart
 	return localized, errors.Wrap(err, "failed to convert currency for shipping cost")
 }
 
+// getRecommendations calls the recommendation service to get product recommendations.
 func (fe *frontendServer) getRecommendations(ctx context.Context, userID string, productIDs []string) ([]*pb.Product, error) {
 	resp, err := pb.NewRecommendationServiceClient(fe.recommendationSvcConn).ListRecommendations(ctx,
 		&pb.ListRecommendationsRequest{UserId: userID, ProductIds: productIDs})
@@ -116,6 +125,7 @@ func (fe *frontendServer) getRecommendations(ctx context.Context, userID string,
 	return out, err
 }
 
+// getAd calls the ad service to get an advertisement.
 func (fe *frontendServer) getAd(ctx context.Context, ctxKeys []string) ([]*pb.Ad, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*100)
 	defer cancel()

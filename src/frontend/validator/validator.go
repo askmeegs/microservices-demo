@@ -30,46 +30,56 @@ func init() {
 	validate = validator.New(validator.WithRequiredStructEnabled())
 }
 
+// Payload is an interface for validating request payloads.
 type Payload interface {
 	Validate() error
 }
 
+// AddToCartPayload is the payload for the addToCartHandler.
 type AddToCartPayload struct {
-	Quantity  uint64 `validate:"required,gte=1,lte=10"`
+	Quantity  uint64 `validate:"required,gte=1,lte=10"
 	ProductID string `validate:"required"`
 }
 
+// PlaceOrderPayload is the payload for the placeOrderHandler.
 type PlaceOrderPayload struct {
-	Email         string `validate:"required,email"`
-	StreetAddress string `validate:"required,max=512"`
-	ZipCode       int64  `validate:"required"`
-	City          string `validate:"required,max=128"`
-	State         string `validate:"required,max=128"`
-	Country       string `validate:"required,max=128"`
-	CcNumber      string `validate:"required,credit_card"`
-	CcMonth       int64  `validate:"required,gte=1,lte=12"`
-	CcYear        int64  `validate:"required"`
-	CcCVV         int64  `validate:"required"`
+	Email         string `validate:"required,email"
+	StreetAddress string `validate:"required,max=512"
+	ZipCode       int64  `validate:"required"
+	City          string `validate:"required,max=128"
+	State         string `validate:"required,max=128"
+	Country       string `validate:"required,max=128"
+	CcNumber      string `validate:"required,credit_card"
+	CcMonth       int64  `validate:"required,gte=1,lte=12"
+	CcYear        int64  `validate:"required"
+	CcCVV         int64  `validate:"required"
 }
 
+// SetCurrencyPayload is the payload for the setCurrencyHandler.
 type SetCurrencyPayload struct {
-	Currency string `validate:"required,iso4217"`
+	Currency string `validate:"required,iso4217"
 }
 
 // Implementations of the 'Payload' interface.
+
+// Validate validates the AddToCartPayload.
 func (ad *AddToCartPayload) Validate() error {
 	return validate.Struct(ad)
 }
 
+// Validate validates the PlaceOrderPayload.
 func (po *PlaceOrderPayload) Validate() error {
 	return validate.Struct(po)
 }
 
+// Validate validates the SetCurrencyPayload.
 func (sc *SetCurrencyPayload) Validate() error {
 	return validate.Struct(sc)
 }
 
 // Reusable error response function.
+
+// ValidationErrorResponse returns a formatted error message for validation errors.
 func ValidationErrorResponse(err error) error {
 	validationErrs, ok := err.(validator.ValidationErrors)
 	if !ok {

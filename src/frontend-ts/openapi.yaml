@@ -1,0 +1,139 @@
+openapi: 3.0.0
+info:
+  title: Frontend Service
+  description: Serves the web pages for the Online Boutique.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+paths:
+  /:
+    get:
+      summary: Home Page
+      description: Renders the home page with the list of products.
+      responses:
+        '200':
+          description: A successful response with the home page HTML.
+          content:
+            text/html:
+              schema:
+                type: string
+  /product/{id}:
+    get:
+      summary: Product Page
+      description: Renders the product page for a given product ID.
+      parameters:
+        - name: id
+          in: path
+          description: The ID of the product to display.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful response with the product page HTML.
+          content:
+            text/html:
+              schema:
+                type: string
+  /cart:
+    get:
+      summary: Cart Page
+      description: Renders the cart page.
+      responses:
+        '200':
+          description: A successful response with the cart page HTML.
+          content:
+            text/html:
+              schema:
+                type: string
+    post:
+      summary: Add to Cart
+      description: Adds a product to the cart.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: string
+                quantity:
+                  type: integer
+      responses:
+        '302':
+          description: Redirects to the cart page.
+  /cart/empty:
+    post:
+      summary: Empty Cart
+      description: Empties the user's cart.
+      responses:
+        '302':
+          description: Redirects to the home page.
+  /cart/checkout:
+    post:
+      summary: Place Order
+      description: Places an order for the items in the cart.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                street_address:
+                  type: string
+                zip_code:
+                  type: integer
+                city:
+                  type: string
+                state:
+                  type: string
+                country:
+                  type: string
+                credit_card_number:
+                  type: string
+                credit_card_expiration_month:
+                  type: integer
+                credit_card_expiration_year:
+                  type: integer
+                credit_card_cvv:
+                  type: integer
+      responses:
+        '200':
+          description: A successful response with the order confirmation page HTML.
+          content:
+            text/html:
+              schema:
+                type: string
+  /setCurrency:
+    post:
+      summary: Set Currency
+      description: Sets the user's currency preference.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                currency_code:
+                  type: string
+      responses:
+        '302':
+          description: Redirects to the previous page.
+  /_healthz:
+    get:
+      summary: Health Check
+      description: Returns a 200 OK status if the service is healthy.
+      responses:
+        '200':
+          description: A successful response.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "ok"

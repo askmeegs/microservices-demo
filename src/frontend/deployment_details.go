@@ -9,9 +9,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// deploymentDetailsMap is a map of deployment details.
 var deploymentDetailsMap map[string]string
 var log *logrus.Logger
 
+// init initializes the logger and loads the deployment details.
 func init() {
 	initializeLogger()
 	// Use a goroutine to ensure loadDeploymentDetails()'s GCP API
@@ -19,6 +21,7 @@ func init() {
 	go loadDeploymentDetails()
 }
 
+// initializeLogger initializes the logger.
 func initializeLogger() {
 	log = logrus.New()
 	log.Level = logrus.DebugLevel
@@ -33,6 +36,8 @@ func initializeLogger() {
 	log.Out = os.Stdout
 }
 
+// loadDeploymentDetails loads the deployment details from the metadata server.
+// It fetches the hostname, cluster name, and zone.
 func loadDeploymentDetails() {
 	deploymentDetailsMap = make(map[string]string)
 	var metaServerClient = metadata.NewClient(&http.Client{})

@@ -59,6 +59,8 @@ var (
 
 type ctxKeySessionID struct{}
 
+// frontendServer is the main server type for the frontend service.
+// It holds the addresses and connections to the various backend services.
 type frontendServer struct {
 	productCatalogSvcAddr string
 	productCatalogSvcConn *grpc.ClientConn
@@ -87,6 +89,9 @@ type frontendServer struct {
 	shoppingAssistantSvcAddr string
 }
 
+// main is the entry point for the frontend service.
+// It initializes the server, sets up tracing and profiling,
+// and starts listening for HTTP requests.
 func main() {
 	ctx := context.Background()
 	log := logrus.New()
@@ -103,9 +108,11 @@ func main() {
 
 	svc := new(frontendServer)
 
-	otel.SetTextMapPropagator(
+	
+otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
-			propagation.TraceContext{}, propagation.Baggage{}))
+			propagation.TraceContext{}, propagation.Baggage{}),
+	)
 
 	baseUrl = os.Getenv("BASE_URL")
 
@@ -173,6 +180,9 @@ func initStats(log logrus.FieldLogger) {
 	// TODO(arbrown) Implement OpenTelemtry stats
 }
 
+// initTracing initializes the OpenTelemetry tracing SDK.
+// It creates a new tracer provider and sets it as the global tracer provider.
+// It also creates a new exporter and registers it with the tracer provider.
 func initTracing(log logrus.FieldLogger, ctx context.Context, svc *frontendServer) (*sdktrace.TracerProvider, error) {
 	mustMapEnv(&svc.collectorAddr, "COLLECTOR_SERVICE_ADDR")
 	mustConnGRPC(ctx, &svc.collectorConn, svc.collectorAddr)
@@ -190,6 +200,8 @@ func initTracing(log logrus.FieldLogger, ctx context.Context, svc *frontendServe
 	return tp, err
 }
 
+// initProfiling initializes the Stackdriver profiler.
+// It retries a few times before giving up.
 func initProfiling(log logrus.FieldLogger, service, version string) {
 	// TODO(ahmetb) this method is duplicated in other microservices using Go
 	// since they are not sharing packages.
@@ -213,6 +225,7 @@ func initProfiling(log logrus.FieldLogger, service, version string) {
 	log.Warn("warning: could not initialize Stackdriver profiler after retrying, giving up")
 }
 
+// mustMapEnv gets an environment variable and panics if it is not set.
 func mustMapEnv(target *string, envKey string) {
 	v := os.Getenv(envKey)
 	if v == "" {
@@ -221,6 +234,8 @@ func mustMapEnv(target *string, envKey string) {
 	*target = v
 }
 
+// mustConnGRPC creates a gRPC client connection to the given address.
+// It panics if the connection fails.
 func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	var err error
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)

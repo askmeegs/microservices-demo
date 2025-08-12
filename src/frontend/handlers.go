@@ -37,6 +37,7 @@ import (
 	"github.com/GoogleCloudPlatform/microservices-demo/src/frontend/validator"
 )
 
+// platformDetails contains information about the platform the application is running on.
 type platformDetails struct {
 	css      string
 	provider string
@@ -47,15 +48,18 @@ var (
 	isCymbalBrand    = "true" == strings.ToLower(os.Getenv("CYMBAL_BRANDING"))
 	assistantEnabled = "true" == strings.ToLower(os.Getenv("ENABLE_ASSISTANT"))
 	templates        = template.Must(template.New("").
-				Funcs(template.FuncMap{
+			Funcs(template.FuncMap{
 			"renderMoney":        renderMoney,
 			"renderCurrencyLogo": renderCurrencyLogo,
 		}).ParseGlob("templates/*.html"))
 	plat platformDetails
 )
 
+// validEnvs is a list of valid environments for the ENV_PLATFORM environment variable.
 var validEnvs = []string{"local", "gcp", "azure", "aws", "onprem", "alibaba"}
 
+// homeHandler renders the homepage.
+// It fetches the products, currencies, and cart items from the backend services.
 func (fe *frontendServer) homeHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	log.WithField("currency", currentCurrency(r)).Info("home")
@@ -119,6 +123,7 @@ func (fe *frontendServer) homeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// setPlatformDetails sets the platform details based on the environment.
 func (plat *platformDetails) setPlatformDetails(env string) {
 	if env == "aws" {
 		plat.provider = "AWS"
@@ -141,6 +146,8 @@ func (plat *platformDetails) setPlatformDetails(env string) {
 	}
 }
 
+// productHandler renders the product page.
+// It fetches the product, currencies, and cart items from the backend services.
 func (fe *frontendServer) productHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	id := mux.Vars(r)["id"]
@@ -208,6 +215,7 @@ func (fe *frontendServer) productHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// addToCartHandler adds an item to the cart.
 func (fe *frontendServer) addToCartHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	quantity, _ := strconv.ParseUint(r.FormValue("quantity"), 10, 32)
@@ -236,6 +244,7 @@ func (fe *frontendServer) addToCartHandler(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusFound)
 }
 
+// emptyCartHandler empties the cart.
 func (fe *frontendServer) emptyCartHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	log.Debug("emptying cart")
@@ -248,6 +257,8 @@ func (fe *frontendServer) emptyCartHandler(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusFound)
 }
 
+// viewCartHandler renders the cart page.
+// It fetches the cart items, currencies, and recommendations from the backend services.
 func (fe *frontendServer) viewCartHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	log.Debug("view user cart")
@@ -317,6 +328,8 @@ func (fe *frontendServer) viewCartHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// placeOrderHandler places an order.
+// It calls the checkout service to place the order.
 func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	log.Debug("placing order")
@@ -400,6 +413,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// assistantHandler renders the shopping assistant page.
 func (fe *frontendServer) assistantHandler(w http.ResponseWriter, r *http.Request) {
 	currencies, err := fe.getCurrencies(r.Context())
 	if err != nil {
@@ -415,6 +429,7 @@ func (fe *frontendServer) assistantHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// logoutHandler logs the user out by deleting the session cookie.
 func (fe *frontendServer) logoutHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	log.Debug("logging out")
@@ -427,6 +442,7 @@ func (fe *frontendServer) logoutHandler(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusFound)
 }
 
+// getProductByID returns the product with the given ID in JSON format.
 func (fe *frontendServer) getProductByID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["ids"]
 	if id == "" {
@@ -448,6 +464,8 @@ func (fe *frontendServer) getProductByID(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 }
 
+// chatBotHandler handles the chatbot requests.
+// It calls the shopping assistant service to get the response.
 func (fe *frontendServer) chatBotHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	type Response struct {
@@ -496,6 +514,7 @@ func (fe *frontendServer) chatBotHandler(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 }
 
+// setCurrencyHandler sets the currency cookie.
 func (fe *frontendServer) setCurrencyHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	cur := r.FormValue("currency_code")
@@ -533,6 +552,7 @@ func (fe *frontendServer) chooseAd(ctx context.Context, ctxKeys []string, log lo
 	return ads[rand.Intn(len(ads))]
 }
 
+// renderHTTPError logs the error and renders an error page.
 func renderHTTPError(log logrus.FieldLogger, r *http.Request, w http.ResponseWriter, err error, code int) {
 	log.WithField("error", err).Error("request error")
 	errMsg := fmt.Sprintf("%+v", err)
@@ -548,6 +568,7 @@ func renderHTTPError(log logrus.FieldLogger, r *http.Request, w http.ResponseWri
 	}
 }
 
+// injectCommonTemplateData injects common data into the template payload.
 func injectCommonTemplateData(r *http.Request, payload map[string]interface{}) map[string]interface{} {
 	data := map[string]interface{}{
 		"session_id":        sessionID(r),
@@ -570,6 +591,7 @@ func injectCommonTemplateData(r *http.Request, payload map[string]interface{}) m
 	return data
 }
 
+// currentCurrency returns the currency from the cookie, or the default currency if not set.
 func currentCurrency(r *http.Request) string {
 	c, _ := r.Cookie(cookieCurrency)
 	if c != nil {
@@ -578,6 +600,7 @@ func currentCurrency(r *http.Request) string {
 	return defaultCurrency
 }
 
+// sessionID returns the session ID from the context.
 func sessionID(r *http.Request) string {
 	v := r.Context().Value(ctxKeySessionID{})
 	if v != nil {
@@ -586,6 +609,7 @@ func sessionID(r *http.Request) string {
 	return ""
 }
 
+// cartIDs returns the product IDs of the items in the cart.
 func cartIDs(c []*pb.CartItem) []string {
 	out := make([]string, len(c))
 	for i, v := range c {
@@ -603,11 +627,13 @@ func cartSize(c []*pb.CartItem) int {
 	return cartSize
 }
 
+// renderMoney renders the money in the given currency.
 func renderMoney(money pb.Money) string {
 	currencyLogo := renderCurrencyLogo(money.GetCurrencyCode())
 	return fmt.Sprintf("%s%d.%02d", currencyLogo, money.GetUnits(), money.GetNanos()/10000000)
 }
 
+// renderCurrencyLogo returns the currency logo for the given currency code.
 func renderCurrencyLogo(currencyCode string) string {
 	logos := map[string]string{
 		"USD": "$",
@@ -625,6 +651,7 @@ func renderCurrencyLogo(currencyCode string) string {
 	return logo
 }
 
+// stringinSlice checks if a string is in a slice of strings.
 func stringinSlice(slice []string, val string) bool {
 	for _, item := range slice {
 		if item == val {

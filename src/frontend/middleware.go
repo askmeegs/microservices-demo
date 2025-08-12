@@ -24,22 +24,29 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// ctxKeyLog is a context key for the request-scoped logger.
 type ctxKeyLog struct{}
+// ctxKeyRequestID is a context key for the request ID.
 type ctxKeyRequestID struct{}
 
+// logHandler is a middleware that logs requests.
 type logHandler struct {
 	log  *logrus.Logger
 	next http.Handler
 }
 
+// responseRecorder is a wrapper around http.ResponseWriter to record the status code and bytes written.
 type responseRecorder struct {
 	b      int
 	status int
 	w      http.ResponseWriter
 }
 
+// Header returns the header map that will be sent by
+// WriteHeader.
 func (r *responseRecorder) Header() http.Header { return r.w.Header() }
 
+// Write writes the data to the connection as part of an HTTP reply.
 func (r *responseRecorder) Write(p []byte) (int, error) {
 	if r.status == 0 {
 		r.status = http.StatusOK
@@ -49,11 +56,15 @@ func (r *responseRecorder) Write(p []byte) (int, error) {
 	return n, err
 }
 
+// WriteHeader sends an HTTP response header with the provided
+// status code.
 func (r *responseRecorder) WriteHeader(statusCode int) {
 	r.status = statusCode
 	r.w.WriteHeader(statusCode)
 }
 
+// ServeHTTP implements the http.Handler interface.
+// It logs the request and response.
 func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	requestID, _ := uuid.NewRandom()
@@ -82,6 +93,8 @@ func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	lh.next.ServeHTTP(rr, r)
 }
 
+// ensureSessionID is a middleware that ensures a session ID exists.
+// If a session ID does not exist, a new one is created and set as a cookie.
 func ensureSessionID(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var sessionID string

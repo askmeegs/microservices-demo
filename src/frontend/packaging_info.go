@@ -31,6 +31,7 @@ var (
 	packagingServiceUrl string
 )
 
+// PackagingInfo contains information about the packaging of a product.
 type PackagingInfo struct {
 	Weight float32 `json:"weight"`
 	Width  float32 `json:"width"`
@@ -43,10 +44,12 @@ func init() {
 	packagingServiceUrl = os.Getenv("PACKAGING_SERVICE_URL")
 }
 
+// isPackagingServiceConfigured returns true if the packaging service is configured.
 func isPackagingServiceConfigured() bool {
 	return packagingServiceUrl != ""
 }
 
+// httpGetPackagingInfo makes an HTTP GET request to the packaging service to get the packaging info for a product.
 func httpGetPackagingInfo(productId string) (*PackagingInfo, error) {
 	// Make the GET request
 	url := packagingServiceUrl + "/" + productId
